@@ -1,0 +1,18 @@
+.App {
+  text-align: center;
+}
+
+li {
+  list-style-type: none;
+  width: 70%;
+  text-align: left;
+  margin: 0 auto;
+  border: 2px solid pink;
+  padding: 5px 10px 5px 10px;
+  margin-top: 10px
+
+}
+
+.done {
+  text-decoration: line-through;
+}
