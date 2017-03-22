@@ -78,6 +78,17 @@ var taskParser = {
     var dueDate = task.raw.match(/due:\d{4}-\d{2}-\d{2}/);
     if(dueDate != null){
         task.due = stringToDate(dueDate[0]);
+        task.clean = task.clean.replace(dueDate[0],"");
+    }
+
+
+    return task;
+  },
+  parseThreshold: function(task){
+    var thresholdDate = task.raw.match(/t:\d{4}-\d{2}-\d{2}/);
+    if(thresholdDate != null){
+        task.threshold = stringToDate(thresholdDate[0]);
+        task.clean = task.clean.replace(thresholdDate[0],"");
     }
 
     return task;
@@ -99,6 +110,7 @@ var taskParser = {
     taskObject = this.parseProjects(taskObject);
     taskObject = this.parseContexts(taskObject);
     taskObject = this.parseDue(taskObject);
+    taskObject = this.parseThreshold(taskObject);
 
     return taskObject;
   }
