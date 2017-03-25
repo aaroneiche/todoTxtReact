@@ -138,12 +138,50 @@ var getFileData = function(file){
 }
 
 class App extends Component {
+  constructor(){
+    super();
+    this.state = {
+      filterValue: ""
+    }
+    this.handleFilter = this.handleFilter.bind(this);
+  }
+
+  handleFilter(val){
+    this.setState({filterValue: val})
+  }
+
   render() {
     return (
       <div className="App">
-        <TodoList />
+        <Search passUp={this.handleFilter} />
+        <TodoList filterData={this.state.filterValue}/>
       </div>
     );
+  }
+}
+
+class Search extends Component {
+  constructor() {
+    super();
+    this.state = {
+      filterString: "test"
+    }
+
+    this.handleChange = this.handleChange.bind(this);
+  }
+
+  handleChange(event) {
+    this.setState({filterString: event.target.value});
+    this.props.passUp(event.target.value);
+  }
+
+  render(){
+    return (
+      <div>
+        <label>Filter</label>
+        <input type="text" name="filter" onChange={this.handleChange}/>
+      </div>
+    )
   }
 }
 
@@ -184,7 +222,15 @@ class TodoList extends Component {
     })
   }
   render() {
-    let todoItems = this.state.itemSet.map(function(t){
+    let _this = this;
+
+    const filteredItemSet = this.state.itemSet
+      .filter(function(t){
+        // return t.done == true;
+        return (t.raw.indexOf(_this.props.filterData) != -1);
+      })
+
+    let todoItems = filteredItemSet.map(function(t){
       return <TodoItem item={t}/>;
     })
     return <ul>
