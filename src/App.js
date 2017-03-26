@@ -207,6 +207,7 @@ class TodoList extends Component {
         var processed = [];
 
         for(let item = 0; item < rawTasks.length; item++){
+          if(rawTasks[item].length === 0) continue;
           var t = taskParser.parseTask(rawTasks[item]);
           t.order = item;
           processed.push(t);
@@ -231,6 +232,14 @@ class TodoList extends Component {
         let match = t.raw.match(reg) != null;
         return (match);
       })
+
+      //Sort by priority
+      filteredItemSet.sort(function(a,b){
+        if(a.priority < b.priority) return -1;
+        if(a.priority > b.priority) return 1;
+        return 0;
+      });
+
 
     let todoItems = filteredItemSet.map(function(t){
       return <TodoItem key={t.order} item={t}/>;
