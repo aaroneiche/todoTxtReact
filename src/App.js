@@ -208,6 +208,7 @@ class TodoList extends Component {
 
         for(let item = 0; item < rawTasks.length; item++){
           var t = taskParser.parseTask(rawTasks[item]);
+          t.order = item;
           processed.push(t);
         }
 
@@ -226,12 +227,13 @@ class TodoList extends Component {
 
     const filteredItemSet = this.state.itemSet
       .filter(function(t){
-        // return t.done == true;
-        return (t.raw.indexOf(_this.props.filterData) != -1);
+        let reg = new RegExp(_this.props.filterData,'i');
+        let match = t.raw.match(reg) != null;
+        return (match);
       })
 
     let todoItems = filteredItemSet.map(function(t){
-      return <TodoItem item={t}/>;
+      return <TodoItem key={t.order} item={t}/>;
     })
     return <ul>
         {todoItems}
@@ -248,7 +250,10 @@ class TodoItem extends Component {
       done = "done";
     }
     return (
-      <li className={done} ><b>{t.priority}</b> {t.clean}<br/></li>
+      <li className={done} >
+        <input type="checkbox" checked={t.done} onChange={this.checkboxHandler}/>
+        <b>{t.priority}</b> {t.clean}<br/>
+      </li>
     )
   }
 }
