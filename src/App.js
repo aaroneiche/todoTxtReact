@@ -137,6 +137,9 @@ var getFileData = function(file){
   })
 }
 
+
+
+
 class App extends Component {
   constructor(){
     super();
@@ -144,17 +147,23 @@ class App extends Component {
       filterValue: ""
     }
     this.handleFilter = this.handleFilter.bind(this);
+    this.writeToFile = this.writeToFile.bind(this);
   }
 
   handleFilter(val){
     this.setState({filterValue: val})
   }
 
+  writeToFile(valToUpdate) {
+    console.log(valToUpdate);
+  }
+
+
   render() {
     return (
       <div className="App">
         <Search passUp={this.handleFilter} />
-        <TodoList filterData={this.state.filterValue}/>
+        <TodoList filterData={this.state.filterValue} passToFile={this.writeToFile}/>
       </div>
     );
   }
@@ -186,11 +195,12 @@ class Search extends Component {
 }
 
 class TodoList extends Component {
-  constructor() {
-    super();
+  constructor(props) {
+    super(props);
     this.state = {
       itemSet:[]
     }
+    this.passToFile = this.passToFile.bind(this);
   }
   componentDidMount(){
 
@@ -223,6 +233,11 @@ class TodoList extends Component {
       console.error(error)
     })
   }
+
+  passToFile(valToPass){
+    this.props.passToFile(valToPass);
+  }
+
   render() {
     let _this = this;
 
@@ -240,9 +255,8 @@ class TodoList extends Component {
         return 0;
       });
 
-
     let todoItems = filteredItemSet.map(function(t){
-      return <TodoItem key={t.order} item={t}/>;
+      return <TodoItem key={t.order} item={t} passToFile={_this.passToFile} />;
     })
     return <ul>
         {todoItems}
@@ -251,17 +265,27 @@ class TodoList extends Component {
 }
 
 class TodoItem extends Component {
+  constructor(props){
+    super(props);
+    this.state = this.props.item;
+    this.checkboxHandler = this.checkboxHandler.bind(this);
+  }
+
+  checkboxHandler(event) {
+    var done = event.target.checked;
+    this.setState({
+      done: done
+    });
+    this.props.passToFile((done)? "x " + this.state.raw: this.state.raw);
+  }
 
   render() {
-    let t = this.props.item;
-    var done = "";
-    if(t.done){
-      done = "done";
-    }
+    var done = (this.state.done)? "done" : "";
+
     return (
       <li className={done} >
-        <input type="checkbox" checked={t.done} onChange={this.checkboxHandler}/>
-        <b>{t.priority}</b> {t.clean}<br/>
+        <input type="checkbox" checked={this.state.done} onChange={this.checkboxHandler}/>
+        <b>{this.state.priority}</b> {this.state.clean}<br/>
       </li>
     )
   }
