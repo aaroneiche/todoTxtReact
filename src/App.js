@@ -155,7 +155,7 @@ class App extends Component {
   }
 
   writeToFile(valToUpdate) {
-    console.log(valToUpdate);
+    console.log("going to write " + valToUpdate);
   }
 
 
@@ -268,7 +268,11 @@ class TodoItem extends Component {
   constructor(props){
     super(props);
     this.state = this.props.item;
+
     this.checkboxHandler = this.checkboxHandler.bind(this);
+    this.toggleHandler = this.toggleHandler.bind(this);
+    this.editHandler = this.editHandler.bind(this);
+    this.keyHandler = this.keyHandler.bind(this);
   }
 
   checkboxHandler(event) {
@@ -279,13 +283,41 @@ class TodoItem extends Component {
     this.props.passToFile((done)? "x " + this.state.raw: this.state.raw);
   }
 
+  toggleHandler(event){
+    this.setState({edit:!this.state.edit});
+  }
+
+  keyHandler(event){
+    if(event.charCode == 27){
+      console.log("Escape");
+    }else if(event.charCode == 13){
+      console.log("Return");
+      this.props.passToFile(this.state.raw);
+    }
+  }
+
+  editHandler(event){
+    console.log(event.target.value);
+    this.setState({raw:event.target.value});
+  }
+
   render() {
     var done = (this.state.done)? "done" : "";
-
+    const editing = this.state.edit;
     return (
       <li className={done} >
-        <input type="checkbox" checked={this.state.done} onChange={this.checkboxHandler}/>
-        <b>{this.state.priority}</b> {this.state.clean}<br/>
+        {!editing ? (
+          <div>
+            <input type="checkbox" checked={this.state.done} onChange={this.checkboxHandler}/>
+            <b>{this.state.priority}</b>
+            <span onDoubleClick={this.toggleHandler}> {this.state.clean}</span>
+          </div>
+        ) : (
+          <div>
+            <input className="editRaw" value={this.state.raw} onDoubleClick={this.toggleHandler} onKeyPress={this.keyHandler} onChange={this.editHandler} />
+            <br />
+          </div>
+        )}
       </li>
     )
   }

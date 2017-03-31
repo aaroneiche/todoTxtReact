@@ -16,3 +16,8 @@ li {
 .done {
   text-decoration: line-through;
 }
+
+li input.editRaw {
+  width: 100%;
+  font-size: 16px;
+}
