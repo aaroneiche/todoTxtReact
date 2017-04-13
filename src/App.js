@@ -95,12 +95,11 @@ var taskParser = {
   },
   /*
   TODO:
-  parse due date
-  parse threshold
   */
 
   parseTask: function(task){
     let taskObject = {
+      original: task,
       raw: task,
       clean: task
     }
@@ -120,8 +119,6 @@ var dropbox = require('dropbox');
 var dbx = new dropbox({ accessToken: 'XFPdWJ3F-p4AAAAAAAAJWqM8Udy4H2drBW0HvzlkNnCzDoH8PUFoqm3S-Z6OD243' });
 
 var getFileData = function(file){
-  console.log("getting File data");
-
   return new Promise(function(resolve,reject){
     let f = new FileReader();
 
@@ -137,6 +134,50 @@ var getFileData = function(file){
   })
 }
 
+var writeFileData = function(task){
+
+  dbx.filesDownload({path: "/Development/todoTest.txt"})
+    .then(function(res){
+      return getFileData(res.fileBlob)})
+    .catch(function(err){console.log(err)})
+    .then(function(fileInfo){
+      var updated = fileInfo.replace(String(task.search),String(task.replace));
+
+      dbx.filesUpload({path: "/Development/todoTest.txt", contents: updated, mode:{".tag":"overwrite"}})
+        .then(function(res){
+          console.log(res);
+        }).catch(function(err){
+          console.log(err);
+        })
+
+    })
+    .catch(function(err){console.log(err)})
+
+    //
+    // .then(function(fileData){
+    //   // console.log(fileData);
+    //   // var contents = fileData.fileBinary;
+    //
+    //   getFileData(fileData)
+    //   .then(function(file){
+    //
+    //     console.log(file);
+    //     //task and replacement
+    //     var updated = fileBinary.replace(String(task.search),String(task.replace));
+    //     console.log("----");
+    //     // console.log(task);
+    //
+    //     dbx.filesUpload({path: "/Development/todoTest.txt", contents: updated, mode:{".tag":"overwrite"}})
+    //       .then(function(res){
+    //         console.log(res);
+    //       }).catch(function(err){
+    //         console.log("Thing went wrong");
+    //         console.log(err);
+    //       })
+    //
+    //     })
+    //   })
+}
 
 
 
@@ -148,6 +189,15 @@ class App extends Component {
     }
     this.handleFilter = this.handleFilter.bind(this);
     this.writeToFile = this.writeToFile.bind(this);
+    this.handleKeyPress = this.handleKeyPress.bind(this);
+  }
+
+  componentDidMount() {
+    document.addEventListener('keydown', this.handleKeyPress);
+  }
+
+  handleKeyPress(ev){
+    // console.log(ev.key);
   }
 
   handleFilter(val){
@@ -156,6 +206,7 @@ class App extends Component {
 
   writeToFile(valToUpdate) {
     console.log("going to write " + valToUpdate);
+    writeFileData(valToUpdate);
   }
 
 
@@ -285,14 +336,19 @@ class TodoItem extends Component {
 
   toggleHandler(event){
     this.setState({edit:!this.state.edit});
+    // if(this.state.edit == false){
+    //   writeFileData();
+    // }
   }
 
   keyHandler(event){
+    console.log(event);
     if(event.charCode == 27){
       console.log("Escape");
+      //Just switch this back to display
     }else if(event.charCode == 13){
       console.log("Return");
-      this.props.passToFile(this.state.raw);
+      this.props.passToFile({search:this.state.original, replace:this.state.raw});
     }
   }
 
@@ -305,7 +361,7 @@ class TodoItem extends Component {
     var done = (this.state.done)? "done" : "";
     const editing = this.state.edit;
     return (
-      <li className={done} >
+      <li className={done} onKeyPress={this.keyHandler}>
         {!editing ? (
           <div>
             <input type="checkbox" checked={this.state.done} onChange={this.checkboxHandler}/>
@@ -314,7 +370,7 @@ class TodoItem extends Component {
           </div>
         ) : (
           <div>
-            <input className="editRaw" value={this.state.raw} onDoubleClick={this.toggleHandler} onKeyPress={this.keyHandler} onChange={this.editHandler} />
+            <input className="editRaw" value={this.state.raw} onDoubleClick={this.toggleHandler}  onChange={this.editHandler} />
             <br />
           </div>
         )}
