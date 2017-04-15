@@ -136,49 +136,41 @@ var getFileData = function(file){
 
 var writeFileData = function(task){
 
-  dbx.filesDownload({path: "/Development/todoTest.txt"})
-    .then(function(res){
-      return getFileData(res.fileBlob)})
-    .catch(function(err){console.log(err)})
-    .then(function(fileInfo){
-      var updated = fileInfo.replace(String(task.search),String(task.replace));
+  return new Promise(function(resolve,reject){
+    dbx.filesDownload({path: "/Development/todoTest.txt"})
+      .then(function(res){
+        return getFileData(res.fileBlob)})
+      .catch(function(err){console.log(err)})
+      .then(function(fileInfo){
+        var updated = fileInfo.replace(String(task.search),String(task.replace));
 
-      dbx.filesUpload({path: "/Development/todoTest.txt", contents: updated, mode:{".tag":"overwrite"}})
-        .then(function(res){
-          console.log(res);
-        }).catch(function(err){
-          console.log(err);
-        })
+        dbx.filesUpload({path: "/Development/todoTest.txt", contents: updated, mode:{".tag":"overwrite"}})
+          .then(function(res){
+            console.log(res);
+            resolve(res);
+          }).catch(function(err){
+            console.log(err);
+          })
 
-    })
-    .catch(function(err){console.log(err)})
-
-    //
-    // .then(function(fileData){
-    //   // console.log(fileData);
-    //   // var contents = fileData.fileBinary;
-    //
-    //   getFileData(fileData)
-    //   .then(function(file){
-    //
-    //     console.log(file);
-    //     //task and replacement
-    //     var updated = fileBinary.replace(String(task.search),String(task.replace));
-    //     console.log("----");
-    //     // console.log(task);
-    //
-    //     dbx.filesUpload({path: "/Development/todoTest.txt", contents: updated, mode:{".tag":"overwrite"}})
-    //       .then(function(res){
-    //         console.log(res);
-    //       }).catch(function(err){
-    //         console.log("Thing went wrong");
-    //         console.log(err);
-    //       })
-    //
-    //     })
-    //   })
+      })
+      .catch(function(err){console.log(err)})
+  });
 }
 
+
+var downloadFileContents = function() {
+
+  return new Promise(function(resolve,reject){
+    dbx.filesDownload({path: "/Development/todoTest.txt"})
+     .then(function(downloadedFile){
+       return getFileData(downloadedFile.fileBlob);
+     }).catch(function(err){ console.log("Download Error ")})
+     .then(function(res){
+       //return file contents?
+       resolve(res);
+     }).catch(function(err){ console.log("Read Error ")})
+  })
+}
 
 
 class App extends Component {
@@ -257,14 +249,9 @@ class TodoList extends Component {
 
     let _this = this;
 
-    dbx.filesDownload({path: "/Development/todoTest.txt"})
-    .then(function(fileData){
-      // console.log(fileData);
-      return getFileData(fileData.fileBlob);
-    },function(err){ throw new Error("Bad Bad Bad") })
-    .then(function(fileData){
-
-        let rawTasks = fileData.split("\n");
+    //Download the file, and parse it.
+    downloadFileContents().then(function(f){
+      let rawTasks = f.split("\n");
         var processed = [];
 
         for(let item = 0; item < rawTasks.length; item++){
@@ -277,11 +264,6 @@ class TodoList extends Component {
         _this.setState({
           itemSet: processed
         });
-
-        // throw new Error("This is bad!");
-    },function(err){ throw new Error("Bad Bad Bad") })
-    .catch(function(error){
-      console.error(error)
     })
   }
 
@@ -343,10 +325,10 @@ class TodoItem extends Component {
 
   keyHandler(event){
     console.log(event);
-    if(event.charCode == 27){
+    if(event.charCode === 27){
       console.log("Escape");
       //Just switch this back to display
-    }else if(event.charCode == 13){
+    }else if(event.charCode === 13){
       console.log("Return");
       this.props.passToFile({search:this.state.original, replace:this.state.raw});
     }
